@@ -1,0 +1,240 @@
+<main class="min-h-screen bg-slate-900 p-4 sm:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto">
+    <header class="flex justify-between items-center mb-8">
+      <div class="flex items-center space-x-3">
+        <svg class="w-10 h-10 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" />
+        </svg>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-100">Project AlphaAgent Analyzer</h1>
+      </div>
+      @if (hasApiKey()) {
+        <div class="flex items-center space-x-4">
+          @if (viewMode() === 'dashboard') {
+            <button (click)="resetAnalysis()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium">
+              Analyze New CSV
+            </button>
+          }
+          <button (click)="changeApiKey()" class="px-4 py-2 bg-slate-700 text-slate-200 rounded-md hover:bg-slate-600 transition-colors text-sm font-medium">
+            Change API Key
+          </button>
+        </div>
+      }
+    </header>
+
+    @if (isLoading()) {
+      <div class="flex flex-col items-center justify-center h-64 bg-slate-800/50 rounded-lg">
+        <svg class="animate-spin h-12 w-12 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-4 text-lg text-slate-300">Analyzing data... please wait.</p>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg relative mb-6" role="alert">
+        <strong class="font-bold">Error:</strong>
+        <span class="block sm:inline ml-2">{{ errorMessage() }}</span>
+      </div>
+    }
+    
+    @if (viewMode() === 'apiKeySetup') {
+      <div class="max-w-xl mx-auto mt-16 bg-slate-800 p-8 rounded-xl border border-slate-700">
+        <div class="text-center">
+            <svg class="mx-auto h-12 w-12 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+            </svg>
+          <h2 class="mt-2 text-xl font-semibold text-slate-100">Enter Your Gemini API Key</h2>
+          <p class="mt-2 text-sm text-slate-400">To use the analysis and verification features, please provide your Google Gemini API key. Your key is stored locally in your browser and never shared.</p>
+        </div>
+        <form class="mt-6" (submit)="saveApiKey(apiKeyInput.value); $event.preventDefault()">
+          <div>
+            <label for="api-key" class="sr-only">API Key</label>
+            <input #apiKeyInput type="password" name="api-key" id="api-key" class="block w-full rounded-md border-0 bg-slate-700/50 p-3 text-slate-100 shadow-sm ring-1 ring-inset ring-slate-600 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6" placeholder="Enter your API key...">
+          </div>
+          <div class="mt-4">
+            <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors">Save and Continue</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (viewMode() === 'upload' && !isLoading()) {
+      <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 text-center">
+        <h2 class="text-xl font-semibold text-slate-100 mb-2">Upload Your CSV File</h2>
+        <p class="text-slate-400 mb-6">Drag and drop your project data file here or click to select.</p>
+        <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-600 border-dashed rounded-md">
+          <div class="space-y-1 text-center">
+            <svg class="mx-auto h-12 w-12 text-slate-500" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div class="flex text-sm text-slate-400">
+              <label for="file-upload" class="relative cursor-pointer bg-slate-700 rounded-md font-medium text-indigo-400 hover:text-indigo-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-slate-800 focus-within:ring-indigo-500 px-2">
+                <span>Upload a file</span>
+                <input id="file-upload" name="file-upload" type="file" class="sr-only" (change)="onFileChange($event)" accept=".csv">
+              </label>
+              <p class="pl-1">or drag and drop</p>
+            </div>
+            <p class="text-xs text-slate-500">CSV up to 10MB</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (analysisResult(); as result) {
+      <div class="space-y-8">
+        <!-- Summary Stats -->
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-slate-200">Analysis Summary</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <p class="text-sm text-slate-400">Total Filtered Projects</p>
+              <p class="text-3xl font-bold text-indigo-400">{{ result.summaryStatistics.totalProjects }}</p>
+            </div>
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <p class="text-sm text-slate-400">Avg. Potential Score</p>
+              <p class="text-3xl font-bold text-indigo-400">{{ result.summaryStatistics.averagePotentialScore }}</p>
+            </div>
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <p class="text-sm text-slate-400">High Potential (8+)</p>
+              <p class="text-3xl font-bold text-green-400">{{ result.summaryStatistics.highPotentialProjects }}</p>
+            </div>
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <p class="text-sm text-slate-400">Medium Potential (6-8)</p>
+              <p class="text-3xl font-bold text-yellow-400">{{ result.summaryStatistics.mediumPotentialProjects }}</p>
+            </div>
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+              <p class="text-sm text-slate-400">Upcoming Launches</p>
+              <p class="text-3xl font-bold text-sky-400">{{ result.summaryStatistics.upcomingProjects }}</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Charts -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+            <h3 class="font-semibold mb-2">Top Categories</h3>
+            <div #categoryChart class="w-full h-[300px]"></div>
+          </div>
+          <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+            <h3 class="font-semibold mb-2">Launch Status</h3>
+            <div #statusChart class="w-full h-[300px] flex justify-center items-center"></div>
+          </div>
+           <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 col-span-1 lg:col-span-2">
+            <h3 class="font-semibold mb-2">Potential Score Distribution</h3>
+            <div #scoreChart class="w-full h-[300px]"></div>
+          </div>
+        </section>
+
+        <!-- Top Projects Table -->
+        <section>
+           <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-slate-200">Top Prioritized Projects</h2>
+             <button (click)="exportToCsv()" class="px-4 py-2 bg-slate-700 text-slate-200 rounded-md hover:bg-slate-600 transition-colors text-sm">
+              Export as CSV
+            </button>
+          </div>
+          <div class="overflow-x-auto bg-slate-800/50 rounded-lg border border-slate-700">
+            <table class="min-w-full divide-y divide-slate-700">
+              <thead class="bg-slate-800">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Project Name</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Categories</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Launch Status</th>
+                  <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Potential</th>
+                  <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Priority</th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">Verification</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700">
+                @for (project of result.prioritizedProjects; track project.projectName) {
+                  <tr class="hover:bg-slate-800 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-slate-100">{{ project.projectName }}</div>
+                      @if(project.websiteUrl !== 'N/A') {
+                        <a [href]="project.websiteUrl" target="_blank" class="text-xs text-indigo-400 hover:underline">{{ project.websiteUrl }}</a>
+                      } @else {
+                        <span class="text-xs text-slate-500">No website</span>
+                      }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{{ project.categoryTags }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                       <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        [class.bg-sky-900]="project.launchStatus.toLowerCase().includes('upcoming')"
+                        [class.text-sky-300]="project.launchStatus.toLowerCase().includes('upcoming')"
+                        [class.bg-blue-900]="project.launchStatus.toLowerCase().includes('development')"
+                        [class.text-blue-300]="project.launchStatus.toLowerCase().includes('development')"
+                        [class.bg-emerald-900]="project.launchStatus.toLowerCase().includes('live') || project.launchStatus.toLowerCase().includes('launched')"
+                        [class.text-emerald-300]="project.launchStatus.toLowerCase().includes('live') || project.launchStatus.toLowerCase().includes('launched')"
+                        [class.bg-amber-900]="project.launchStatus.toLowerCase().includes('beta') || project.launchStatus.toLowerCase().includes('alpha')"
+                        [class.text-amber-300]="project.launchStatus.toLowerCase().includes('beta') || project.launchStatus.toLowerCase().includes('alpha')"
+                       >{{ project.launchStatus }}</span>
+                    </td>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-slate-200 text-center font-bold">{{ project.potentialScore }}</td>
+                    <td class="px-3 py-4 whitespace-nowrap text-sm text-indigo-300 text-center font-bold">{{ project.priorityScore?.toFixed(2) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                      @switch (project.verificationStatus) {
+                        @case ('unverified') {
+                          <button (click)="verifyProject(project)" class="px-3 py-1 text-xs bg-slate-600 text-slate-200 rounded-md hover:bg-slate-500 transition-colors">
+                            Verify
+                          </button>
+                        }
+                        @case ('verifying') {
+                          <svg class="animate-spin h-5 w-5 text-indigo-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        }
+                        @case ('verified') {
+                          <div class="flex items-center justify-center space-x-2">
+                            <svg class="w-5 h-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="font-semibold text-green-300">{{ project.verificationScore }}%</span>
+                          </div>
+                        }
+                        @case ('failed') {
+                          <div class="flex items-center justify-center" title="Verification failed">
+                            <svg class="w-5 h-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                          </div>
+                        }
+                      }
+                    </td>
+                  </tr>
+                  @if (project.verificationStatus === 'verified' || project.verificationStatus === 'failed') {
+                    <tr class="bg-slate-800/20">
+                      <td colspan="6" class="px-6 py-3">
+                        <div class="text-xs text-slate-300">
+                          <p class="font-semibold mb-1">Verification Summary:</p>
+                          <p class="italic text-slate-400">{{ project.verificationSummary }}</p>
+                           @if (project.evidenceLinks && project.evidenceLinks.length > 0) {
+                            <div class="mt-2">
+                                <p class="font-semibold mb-1">Evidence:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                  @for (link of project.evidenceLinks; track link.uri) {
+                                      <li><a [href]="link.uri" target="_blank" class="text-indigo-400 hover:underline">{{ link.title || link.uri }}</a></li>
+                                  }
+                                </ul>
+                            </div>
+                           }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                      No projects match the current filters.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    }
+  </div>
+</main>

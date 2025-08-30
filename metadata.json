@@ -1,0 +1,5 @@
+{
+  "name": "Project AlphaAgent CSV Analyzer",
+  "description": "An autonomous system to analyze, validate, filter, and enrich CSV data produced by Project AlphaAgent. Upload a CSV file to get a comprehensive analysis, including data visualizations and prioritized project lists.",
+  "requestFramePermissions": []
+}
